@@ -20,10 +20,16 @@ func main() {
 	event.SetType("example.type")
 
 	messageData, err := json.Marshal(emailapi.PubSubMessageData{
-		Sender:  "no-reply@tommymay.dev",
-		Subject: "Hello World",
-		Body:    "Some Body",
-		To:      "tommymay37@gmail.com",
+		Sender:   "no-reply@tommymay.dev",
+		Subject:  "Hello World",
+		To:       "tommymay37@gmail.com",
+		Template: "contact.gohtml",
+		Data: map[string]interface{}{
+			"name":    "Johnny",
+			"subject": "hello subject",
+			"email":   "johnny@example.com",
+			"message": "Hello message",
+		},
 	})
 	if err != nil {
 		log.Fatalf("failed to marshal pub sub message data, %v", messageData)
@@ -33,19 +39,19 @@ func main() {
 		Message: emailapi.PubSubMessage{
 			Data: messageData,
 		},
-		Attributes: map[string]interface{}{
+		Attributes: map[string]string{
 			"app": "itmayziii-api",
 		},
 		MessageId:   "123kjsadjk",
 		PublishTime: "asdf asf",
 		OrderingKey: "askfj",
 	}
-	blah, err := json.Marshal(pubSubData)
+	data, err := json.Marshal(pubSubData)
 	if err != nil {
 		log.Fatalf("failed to marshal pub sub data, %v", pubSubData)
 	}
 
-	event.SetData(cloudevents.ApplicationJSON, blah)
+	event.SetData(cloudevents.ApplicationJSON, data)
 	// Set a target.
 	ctx := cloudevents.ContextWithTarget(context.Background(), "http://localhost:8080/")
 

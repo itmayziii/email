@@ -3,22 +3,25 @@ package email_api
 import (
 	"cloud.google.com/go/logging"
 	"context"
-	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/GoogleCloudPlatform/functions-framework-go/functions"
 	cloudevents "github.com/cloudevents/sdk-go/v2"
 	"github.com/mailgun/mailgun-go/v4"
+	"gocloud.dev/blob"
+	_ "gocloud.dev/blob/fileblob"
 	"log"
 	"os"
 	"time"
 )
 
-type App struct {
+type app struct {
 	mgTommyMayDev *mailgun.MailgunImpl
 	loggingClient *logging.Client
 	logger        *logging.Logger
 	infoLogger    *log.Logger
 	errorLogger   *log.Logger
+	fileStorage   *blob.Bucket
 }
 
 func init() {
@@ -28,7 +31,7 @@ func init() {
 	}
 	logger := loggingClient.Logger("email-api", logging.RedirectAsJSON(os.Stdout))
 
-	app := &App{
+	app := &app{
 		mgTommyMayDev: mailgun.NewMailgun("mg.tommymay.dev", os.Getenv("MG_API_KEY_MG_TOMMYMAY_DEV")),
 		loggingClient: loggingClient,
 		logger:        logger,
@@ -38,81 +41,83 @@ func init() {
 	functions.CloudEvent("SendEmail", sendEmail(app))
 }
 
-// PubSubData contains the full Pub/Sub message
-// See the documentation for more details:
-// https://cloud.google.com/eventarc/docs/cloudevents#pubsub
-type PubSubData struct {
-	Subscription string                 `json:"subscription"`
-	Message      PubSubMessage          `json:"message"`
-	Attributes   map[string]interface{} `json:"attributes"`
-	MessageId    string                 `json:"messageId"`
-	PublishTime  string                 `json:"publishTime"`
-	OrderingKey  string                 `json:"orderingKey"`
-}
-
-// PubSubMessage is the payload of a Pub/Sub event.
-// See the documentation for more details:
-// https://cloud.google.com/pubsub/docs/reference/rest/v1/PubsubMessage
-type PubSubMessage struct {
-	Data []byte `json:"data"`
-}
-
-type PubSubMessageData struct {
-	Sender  string `json:"sender"`
-	Subject string `json:"subject"`
-	Body    string `json:"body"`
-	To      string `json:"to"`
-}
-
-func sendEmail(app *App) func(context.Context, cloudevents.Event) error {
+// Specifically not returning the error in bad data situations so that the events are not retried. These types
+// of events will never succeed and should not be retried.
+func sendEmail(app *app) func(context.Context, cloudevents.Event) error {
 	return func(ctx context.Context, event cloudevents.Event) error {
 		defer func() {
-			err := app.logger.Flush()
-			if err != nil {
+			if err := app.logger.Flush(); err != nil {
 				log.Printf(fmt.Sprintf("failed to flush logger: %v", err))
 			}
 		}()
 
-		// Specifically NOT returning the error in bad data situations so that the events are not retried. These types
-		// of events will never succeed and should not be retried.
-		var msg PubSubData
-		if err := event.DataAs(&msg); err != nil {
-			app.errorLogger.Printf("failed to parse event with event.DataAs: %v", err)
-			return nil
-		}
-		var messageData PubSubMessageData
-		if err := json.Unmarshal(msg.Message.Data, &messageData); err != nil {
-			app.errorLogger.Printf("failed to parse message data: %v", err)
-			return nil
-		}
-		if messageData.Sender == "" {
-			app.errorLogger.Println("failed to send email, missing \"sender\"")
-			return nil
-		}
-		if messageData.Subject == "" {
-			app.errorLogger.Println("failed to send email, missing \"subject\"")
-			return nil
-		}
-		if messageData.Body == "" {
-			app.errorLogger.Println("failed to send email, missing \"body\"")
-			return nil
-		}
-		if messageData.To == "" {
-			app.errorLogger.Println("failed to send email, missing \"to\"")
+		_, msgData, err := extractEventData(app, event)
+		if err != nil {
+			app.errorLogger.Printf("failed to extract event data - %v", err)
 			return nil
 		}
 
-		message := app.mgTommyMayDev.NewMessage(messageData.Sender, messageData.Subject, "", messageData.To)
-		message.SetHtml(messageData.Body)
+		bucketName := os.Getenv("BUCKET")
+		bucket, err := blob.OpenBucket(ctx, bucketName)
+		if err != nil {
+			app.errorLogger.Printf("failed to open bucket %s - %v", bucketName, err)
+			return err
+		}
+		defer func() {
+			if err := bucket.Close(); err != nil {
+				app.errorLogger.Printf("failed to close bucket %s - %v", bucketName, err)
+			}
+		}()
+		app.fileStorage = bucket
+
+		emailBody, err := determineEmailBody(ctx, app, msgData)
+		if err != nil {
+			app.errorLogger.Printf("failed to determine email body %v", err)
+
+			if errors.As(err, &ReadTemplateError{}) {
+				// In this specific case we should return the error to trigger the event to fire again later.
+				// Being unable to read the template could be a network issue or the developer simply has not
+				// put the template in place yet.
+				return err
+			}
+
+			return nil
+		}
+
+		message := app.mgTommyMayDev.NewMessage(msgData.Sender, msgData.Subject, "", msgData.To)
+		message.SetHtml(emailBody)
 		ctx, cancel := context.WithTimeout(ctx, time.Second*10)
 		defer cancel()
-		_, _, err := app.mgTommyMayDev.Send(ctx, message)
+		_, _, err = app.mgTommyMayDev.Send(ctx, message)
 		if err != nil {
 			app.errorLogger.Printf("failed to send email: %v\n", err)
 			return err
 		}
-		app.infoLogger.Printf("email sent: sender: %s, subject: %s, to: %s\n", messageData.Sender, messageData.Subject, messageData.To)
+		app.infoLogger.Printf(
+			"email sent: sender: %s, subject: %s, to: %s\n",
+			msgData.Sender,
+			msgData.Subject,
+			msgData.To,
+		)
 
 		return nil
 	}
+}
+
+func determineEmailBody(ctx context.Context, app *app, msgData PubSubMessageData) (string, error) {
+	unparsedBody := msgData.Body
+	if unparsedBody == "" {
+		templateBody, err := readTemplate(ctx, app, msgData.Template)
+		if err != nil {
+			return "", err
+		}
+		unparsedBody = templateBody
+	}
+
+	body, err := executeTemplate(unparsedBody, msgData.Data)
+	if err != nil {
+		return "", err
+	}
+
+	return body, nil
 }
