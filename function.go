@@ -1,4 +1,4 @@
-package email_api
+package email
 
 import (
 	"cloud.google.com/go/logging"
