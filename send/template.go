@@ -1,4 +1,4 @@
-package email
+package send
 
 import (
 	"bytes"
@@ -9,16 +9,18 @@ import (
 	htmlTemplate "html/template"
 )
 
+// ReadTemplateError represents an error that occurs when an email template fails to be retrieved/read.
 type ReadTemplateError struct {
 	templateName string
 	err          error
 }
 
 func (readTemplateError ReadTemplateError) Error() string {
-	return fmt.Sprintf("Failed to read template %s - %w", readTemplateError.templateName, readTemplateError.err)
+	return fmt.Sprintf("Failed to read template %s - %v", readTemplateError.templateName, readTemplateError.err)
 }
 
-func readTemplate(ctx context.Context, app *app, fileName string) (string, error) {
+// readTemplate reads file contents from the provided App.fileStorage.
+func readTemplate(ctx context.Context, app *App, fileName string) (string, error) {
 	data, err := app.fileStorage.ReadAll(ctx, fileName)
 	if err != nil {
 		return "", ReadTemplateError{templateName: fileName, err: err}
@@ -27,6 +29,10 @@ func readTemplate(ctx context.Context, app *app, fileName string) (string, error
 	return string(data), nil
 }
 
+// executeTemplate takes a string representing a [Go HTML template] attempts to bind provided data to the template.
+// If any template variables go unbound then an error is returned.
+//
+// [Go HTML template]: https://pkg.go.dev/html/template
 func executeTemplate(template string, data map[string]interface{}) (string, error) {
 	// We expect email templates to use title case variables {{ .Title }}
 	titleData := make(map[string]interface{})
