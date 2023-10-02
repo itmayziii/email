@@ -23,7 +23,7 @@ func EmailEvent(app *App) func(context.Context, cloudevents.Event) error {
 			if err := app.flusher.Flush(); err != nil {
 				// Not appropriate to rely on the info or error logger here as that is probably the thing that is being
 				// flushed and errored.
-				log.Printf(fmt.Sprintf("failed to flush: %v", err))
+				log.Printf("failed to flush: %v", err)
 			}
 		}()
 
@@ -60,11 +60,11 @@ func EmailEvent(app *App) func(context.Context, cloudevents.Event) error {
 		domain := ""
 		sender, hasDomain := app.domainSenders[domain]
 		if !hasDomain {
-			err = errors.New(fmt.Sprintf(
+			err = fmt.Errorf(
 				"domain: \"%s\" from \"sender\": \"%s\" does not match any registered domain to send emails from",
 				domain,
 				msgData.Sender,
-			))
+			)
 			app.errorLogger.Printf("%v", err)
 			return err
 		}

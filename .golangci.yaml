@@ -1,0 +1,15 @@
+run:
+  modules-download-mode: 'readonly'
+  timeout: 5m
+output:
+  format: 'line-number'
+linters:
+  disable-all: true
+  enable:
+    - 'errcheck'
+    - 'gosimple'
+    - 'govet'
+    - 'ineffassign'
+    - 'staticcheck'
+    - 'unused'
+    - 'gofmt'

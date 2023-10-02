@@ -1,0 +1,112 @@
+steps:
+  - id: 'install-dependencies'
+    name: 'node:20-alpine'
+    entrypoint: 'npm'
+    args: [
+      'ci'
+    ]
+    dir: 'docs'
+    env:
+      - 'NO_COLOR=true'
+    waitFor: ['-'] # Run immediately
+
+  - id: 'build'
+    name: 'node:20-alpine'
+    entrypoint: 'npm'
+    args: [
+      'run',
+      'build'
+    ]
+    dir: 'docs'
+    env:
+      - 'NO_COLOR=true'
+    waitFor: ['install-dependencies']
+
+    # First we put contents in the staging bucket and then set the metadata. This is because when we copy the files
+    # to the live production bucket the metadata will be copied with it and there will be no moment where we are
+    # missing metadata.
+  - id: 'copy-to-staging-bucket'
+    name: 'gcr.io/cloud-builders/gsutil'
+    entrypoint: 'gsutil'
+    args: [
+      '-m',
+      'rsync',
+      '-r', # Recursively
+      '-d', # Delete old bucket contents
+      # Computes checksums instead of comparing mtime. Project is always rebuild, mtime will be different every time.
+      '-c',
+      '-j', # Enables in-memory gzip before upload
+      'html,css,js',
+      './',
+      'gs://itmayziii-email-package-docs-staging'
+    ]
+    dir: 'docs/dist'
+    waitFor: ['build']
+
+  - id: 'set-html-metadata'
+    name: 'gcr.io/cloud-builders/gsutil'
+    entrypoint: 'gsutil'
+    args: [
+      '-m',
+      'setmeta',
+      '-h',
+      'Content-Type:text/html',
+      '-h',
+      'Cache-Control:no-cache',
+      'gs://itmayziii-email-package-docs-staging/**.html'
+    ]
+    dir: 'docs/dist'
+    waitFor: ['copy-to-staging-bucket']
+
+  - id: 'set-js-metadata'
+    name: 'gcr.io/cloud-builders/gsutil'
+    entrypoint: 'gsutil'
+    args: [
+      '-m',
+      'setmeta',
+      '-h', # Header
+      'Content-Type:text/javascript',
+      '-h', # Header
+      'Cache-Control: max-age=31536000', # 1 Year
+      'gs://itmayziii-email-package-docs-staging/**.js'
+    ]
+    dir: 'docs/dist'
+    waitFor: ['copy-to-staging-bucket']
+
+  - id: 'set-css-metadata'
+    name: 'gcr.io/cloud-builders/gsutil'
+    entrypoint: 'gsutil'
+    args: [
+      '-m',
+      'setmeta',
+      '-h', # Header
+      'Content-Type:text/css',
+      '-h', # Header
+      'Cache-Control: max-age=31536000', # 1 Year
+      'gs://itmayziii-email-package-docs-staging/**.css'
+    ]
+    dir: 'docs/dist'
+    waitFor: ['copy-to-staging-bucket']
+
+  - id: 'copy-staging-to-live-bucket'
+    name: 'gcr.io/cloud-builders/gsutil'
+    entrypoint: 'gsutil'
+    args: [
+      '-m',
+      'rsync',
+      '-r', # Recursively
+      '-d', # Delete old bucket contents
+      # Computes checksums instead of comparing mtime. Project is always rebuild, mtime will be different every time.
+      '-c',
+      '-j', # Enables in-memory gzip before upload
+      'html,css,js',
+      'gs://itmayziii-email-package-docs-staging',
+      'gs://itmayziii-email-package-docs'
+    ]
+    dir: 'docs/dist'
+    waitFor: ['set-html-metadata', 'set-js-metadata', 'set-css-metadata']
+
+options:
+  logging: 'CLOUD_LOGGING_ONLY'
+tags: ['docs', 'email']
+timeout: '600s' # 10 minutes

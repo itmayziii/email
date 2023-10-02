@@ -17,21 +17,22 @@ func TestMessageTo_UnmarshalJSON_UnmarshalsStrings(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+		ttCopy := tt
+		t.Run(ttCopy.name, func(t *testing.T) {
 			t.Parallel()
 			actual := send.MessageTo{}
-			err := actual.UnmarshalJSON(tt.data)
+			err := actual.UnmarshalJSON(ttCopy.data)
 
 			if err != nil {
 				t.Error(err)
 			}
-			if len(tt.expected) != len(actual) {
-				t.Errorf("expected %v to match %v", actual, tt.expected)
+			if len(ttCopy.expected) != len(actual) {
+				t.Errorf("expected %v to match %v", actual, ttCopy.expected)
 			}
 			for i, a := range actual {
-				expected := tt.expected[i]
+				expected := ttCopy.expected[i]
 				if expected != a {
-					t.Errorf("expected %s to match %s", a, tt.expected[i])
+					t.Errorf("expected %s to match %s", a, ttCopy.expected[i])
 				}
 			}
 		})
@@ -49,21 +50,22 @@ func TestMessageTo_UnmarshalJSON_UnmarshalsStringArrays(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+		ttCopy := tt
+		t.Run(ttCopy.name, func(t *testing.T) {
 			t.Parallel()
 			actual := send.MessageTo{}
-			err := actual.UnmarshalJSON(tt.data)
+			err := actual.UnmarshalJSON(ttCopy.data)
 
 			if err != nil {
 				t.Error(err)
 			}
-			if len(tt.expected) != len(actual) {
-				t.Errorf("expected %v to match %v", actual, tt.expected)
+			if len(ttCopy.expected) != len(actual) {
+				t.Errorf("expected %v to match %v", actual, ttCopy.expected)
 			}
 			for i, a := range actual {
-				expected := tt.expected[i]
+				expected := ttCopy.expected[i]
 				if expected != a {
-					t.Errorf("expected %s to match %s", a, tt.expected[i])
+					t.Errorf("expected %s to match %s", a, ttCopy.expected[i])
 				}
 			}
 		})

@@ -50,7 +50,10 @@ func main() {
 	//}
 
 	data2 := "{\"message\":{\"attributes\":{\"hello\":\"world\"},\"data\":\"eyJoZWxsbyI6IndvcmxkIiwic2VuZGVyIjoidG9tbXltYXkifQo=\",\"messageId\":\"8300998372576141\",\"message_id\":\"8300998372576141\",\"publishTime\":\"2023-09-27T18:21:16.418Z\",\"publish_time\":\"2023-09-27T18:21:16.418Z\"},\"subscription\":\"projects/itmayziii/subscriptions/eventarc-us-central1-email-func-901633-sub-154\"}"
-	event.SetData(cloudevents.ApplicationJSON, []byte(data2))
+	err = event.SetData(cloudevents.ApplicationJSON, []byte(data2))
+	if err != nil {
+		log.Fatalf("failed to set cloud event data, %v", err)
+	}
 	// Set a target.
 	ctx := cloudevents.ContextWithTarget(context.Background(), "http://localhost:8080/")
 

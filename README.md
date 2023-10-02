@@ -1,5 +1,5 @@
-# email Package
-Package `email` responds to [CloudEvents][cloud-events] to send emails over HTTP by implementing the 
+# email-package
+`email` package responds to [CloudEvents][cloud-events] to send emails over HTTP by implementing the 
 [CloudEvents HTTP specification.][cloud-events-http]
 
 [![Commitizen friendly](https://img.shields.io/badge/commitizen-friendly-brightgreen.svg)](http://commitizen.github.io/cz-cli/)

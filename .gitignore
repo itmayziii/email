@@ -6,3 +6,6 @@
 
 # Local email templates
 templates/
+
+# macOS-specific files
+.DS_Store
