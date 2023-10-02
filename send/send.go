@@ -57,7 +57,7 @@ func EmailEvent(app *App) func(context.Context, cloudevents.Event) error {
 			return nil
 		}
 
-		domain := ""
+		domain := "test"
 		sender, hasDomain := app.domainSenders[domain]
 		if !hasDomain {
 			err = fmt.Errorf(
