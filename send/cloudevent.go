@@ -4,7 +4,9 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
 	cloudevents "github.com/cloudevents/sdk-go/v2"
+	"net/mail"
 	"strings"
 )
 
@@ -98,14 +100,25 @@ func validateMessageData(msgData EventMessageData) error {
 	if msgData.Sender == "" {
 		return errors.New("missing \"sender\"")
 	}
+	if _, err := mail.ParseAddress(msgData.Sender); err != nil {
+		return fmt.Errorf("invalid \"sender\" - %v", err)
+	}
+
 	if msgData.Subject == "" {
 		return errors.New("missing \"subject\"")
 	}
+
 	if msgData.Body == "" && msgData.Template == "" {
 		return errors.New("either \"body\" or \"template\" should be defined")
 	}
+
 	if len(msgData.To) == 0 {
 		return errors.New("missing \"to\"")
+	}
+	for _, to := range msgData.To {
+		if _, err := mail.ParseAddress(to); err != nil {
+			return fmt.Errorf("invalid \"to\" - %v", err)
+		}
 	}
 
 	return nil
