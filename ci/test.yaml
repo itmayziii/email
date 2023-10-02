@@ -1,0 +1,26 @@
+steps:
+  - id: 'install-dependencies'
+    name: 'golang:1.21-alpine'
+    entrypoint: 'go'
+    args: [
+      'mod',
+      'download'
+    ]
+    waitFor: ['-'] # Run immediately
+
+  - id: 'test'
+    name: 'golang:1.21-alpine'
+    entrypoint: 'go'
+    args: [
+      'test',
+      './...'
+    ]
+    waitFor: ['install-dependencies']
+
+options:
+  logging: 'CLOUD_LOGGING_ONLY'
+  volumes:
+    - name: 'go'
+      path: '/go'
+tags: ['package-email', 'test']
+timeout: '600s' # 10 minutes

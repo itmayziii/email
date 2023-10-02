@@ -57,7 +57,12 @@ func EmailEvent(app *App) func(context.Context, cloudevents.Event) error {
 			return nil
 		}
 
-		domain := ""
+		domain, err := extractEmailDomain(msgData.Sender)
+		if err != nil {
+			app.errorLogger.Print(err)
+			// Invalid domains will never be able to be sent
+			return nil
+		}
 		sender, hasDomain := app.domainSenders[domain]
 		if !hasDomain {
 			err = fmt.Errorf(
@@ -65,7 +70,7 @@ func EmailEvent(app *App) func(context.Context, cloudevents.Event) error {
 				domain,
 				msgData.Sender,
 			)
-			app.errorLogger.Printf("%v", err)
+			app.errorLogger.Print(err)
 			return err
 		}
 
@@ -90,27 +95,4 @@ func EmailEvent(app *App) func(context.Context, cloudevents.Event) error {
 
 		return nil
 	}
-}
-
-// determineEmailBody takes the [EventMessageData.Body] or [EventMessageData.Template] and executes them as
-// Go HTML templates with variables being provided by [EventMessageData.Data]. The result should be HTML appropriate to
-// use as an email body.
-//
-// [Go HTML templates]: https://pkg.go.dev/html/template
-func determineEmailBody(ctx context.Context, app *App, msgData EventMessageData) (string, error) {
-	unparsedBody := msgData.Body
-	if unparsedBody == "" {
-		templateBody, err := readTemplate(ctx, app, msgData.Template)
-		if err != nil {
-			return "", err
-		}
-		unparsedBody = templateBody
-	}
-
-	body, err := executeTemplate(unparsedBody, msgData.Data)
-	if err != nil {
-		return "", err
-	}
-
-	return body, nil
 }
