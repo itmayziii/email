@@ -1,0 +1,46 @@
+---
+title: email Package
+description: Get started sending emails by responding to CloudEvents.
+template: splash
+hero:
+  tagline: Send emails in response to CloudEvents!
+  image:
+    file: ../../assets/houston.webp
+  actions:
+    - text: Quickstart
+      link: /quickstart
+      icon: right-arrow
+      variant: primary
+---
+
+import { Card, CardGrid } from '@astrojs/starlight/components';
+
+## Why?
+* Storing secrets necessary to send emails  in many projects is tedious, it is easier to centralize that secret access.
+* Sending emails in apps often involves setting up some sort of messaging queue and templating engine to handle
+variables in emails. Doing this for every app is again, tedious.
+* Centralizing email templates gives transparency of what exists already.
+* Removing vendor lock-in from email SaaS products is ideal. Switching between Mailgun, Sendgrid, Mandrill, etc...
+
+## Next steps
+
+<CardGrid stagger>
+	<Card title="Go reference" icon="add-document">
+		Check out the [Go reference.][go-reference]
+	</Card>
+	<Card title="Deploy" icon="rocket">
+    Visit the [deploy guide][deploy-guide] and learn common deployment strategies.
+	</Card>
+	<Card title="Star the Github" icon="github">
+		Help this project and [author][author] out by starring this [email package repository][email-repo].
+	</Card>
+	<Card title="Learn about CloudEvents" icon="open-book">
+		Learn more about [CloudEvents.][cloud-events]
+	</Card>
+</CardGrid>
+
+[go-reference]: https://pkg.go.dev/github.com/itmayziii/email
+[deploy-guide]: https://TODO
+[author]: https://tommymay.dev
+[email-repo]: https://github.com/itmayziii/email
+[cloud-events]: https://cloudevents.io/
