@@ -1,6 +1,5 @@
 # email Package
-`email` package responds to [CloudEvents][cloud-events] to send emails over HTTP by implementing the 
-[CloudEvents HTTP specification.][cloud-events-http]
+`email` package responds to [CloudEvents][cloud-events] to send emails.
 
 Check out the [official documentation][docs] for end user documentation. This README is dedicated to information
 about package development.
