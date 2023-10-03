@@ -1,31 +1,12 @@
-# email-package
+# email Package
 `email` package responds to [CloudEvents][cloud-events] to send emails over HTTP by implementing the 
 [CloudEvents HTTP specification.][cloud-events-http]
 
-[![Commitizen friendly](https://img.shields.io/badge/commitizen-friendly-brightgreen.svg)](http://commitizen.github.io/cz-cli/)
+Check out the [official documentation][docs] for end user documentation. This README is dedicated to information
+about package development.
 
-## Why?
-* Storing secrets necessary to send emails  in many projects is tedious, it is easier to centralize that secret access.
-* Sending emails in apps often involves setting up some sort of messaging queue and templating engine to handle
-  variables in emails. Doing this for every app is again, tedious.
-* Centralizing email templates gives transparency of what exists already.
-* Removing vendor lock-in from email SaaS products is ideal. Switching between Mailgun, Sendgrid, Mandrill, etc...
-
-## Features
-This package is designed to facilitate email sending in a vendor-neutral manner, avoiding any vendor lock-in.
-We achieve this goal through the following features:
-
-### Sending Options:
-Providing users with the flexibility to choose their preferred method of sending emails, whether it's through a SaaS
-solution like [Mailgun][mailgun] or [SendGrid][sendgrid], or by utilizing their own SMTP server.
-
-### Template Storage:
-Allowing users to decide where they want to store email templates, whether it's on their local disk or in cloud 
-storage services like [S3][s3] or [Google Cloud Storage (GCS).][gcs]
-
-### Standardization
-Adhering to the [CloudEvent specification][cloud-events] to ensure a consistent and opinionated structure for event 
-data.
+[![Static Badge](https://img.shields.io/badge/Documentation-green)][docs]
+[![Commitizen friendly](https://img.shields.io/badge/commitizen-friendly-brightgreen.svg)](https://commitizen.github.io/cz-cli/)
 
 ## Roadmap
 * Add support for some sort of database to keep track of emails already sent to ensure only once delivery. This
@@ -35,6 +16,7 @@ data.
   * Sendgrid
   * Mandrill
 
+[docs]: https://email-package.tommymay.dev
 [mailgun]: https://www.mailgun.com/
 [mailgun-api]: https://documentation.mailgun.com/en/latest/api_reference.html
 [sendgrid]: https://sendgrid.com/

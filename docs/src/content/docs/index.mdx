@@ -8,7 +8,7 @@ hero:
     file: ../../assets/houston.webp
   actions:
     - text: Quickstart
-      link: /quickstart
+      link: /quickstart/
       icon: right-arrow
       variant: primary
 ---
@@ -21,6 +21,22 @@ import { Card, CardGrid } from '@astrojs/starlight/components';
 variables in emails. Doing this for every app is again, tedious.
 * Centralizing email templates gives transparency of what exists already.
 * Removing vendor lock-in from email SaaS products is ideal. Switching between Mailgun, Sendgrid, Mandrill, etc...
+
+## Features
+This package is designed to facilitate email sending in a vendor-neutral manner, avoiding any vendor lock-in.
+We achieve this goal through the following features:
+
+* ### Sending Options:
+  * Providing users with the flexibility to choose their preferred method of sending emails, whether it's through a SaaS
+    solution like [Mailgun][mailgun] or [SendGrid][sendgrid], or by utilizing their own SMTP server.
+
+* ### Template Storage:
+  * Allowing users to decide where they want to store email templates, whether it's on their local disk or in cloud
+    storage services like [S3][s3] or [Google Cloud Storage (GCS).][gcs]
+
+* ### Standardization
+  * Adhering to the [CloudEvent specification][cloud-events] to ensure a consistent and opinionated structure for event
+    data.
 
 ## Next steps
 
@@ -44,3 +60,7 @@ variables in emails. Doing this for every app is again, tedious.
 [author]: https://tommymay.dev
 [email-repo]: https://github.com/itmayziii/email
 [cloud-events]: https://cloudevents.io/
+[gcs]: https://cloud.google.com/storage
+[s3]: https://aws.amazon.com/s3/
+[mailgun]: https://www.mailgun.com/
+[sendgrid]: https://sendgrid.com/

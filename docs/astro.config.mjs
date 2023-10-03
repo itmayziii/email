@@ -18,14 +18,14 @@ export default defineConfig({
 				{
 					label: 'Start Here',
 					items: [
-						{ label: 'Quickstart', link: '/quickstart' },
+						{ label: 'Quickstart', link: '/quickstart/' },
 					],
 				},
 				{
 					label: 'Guides',
 					items: [
-						{ label: 'Customizing', link: '/guides/customizing' },
-						{ label: 'Deploy', link: '/guides/deploy' },
+						{ label: 'Customizing', link: '/guides/customizing/' },
+						{ label: 'Deploy', link: '/guides/deploy/' },
 					],
 				},
 				{
