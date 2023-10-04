@@ -6,12 +6,26 @@ import (
 	"strings"
 )
 
+// Sender sends an email with the provided Message and returns the ID identifying the request. It should be noted
+// that not all email providers provide any such ID, and therefore it may be an empty string.
+type Sender interface {
+	Send(ctx context.Context, m Message) (string, error)
+}
+
+// Message represents an email.
+type Message struct {
+	Sender  string
+	Subject string
+	Body    string
+	To      []string
+}
+
 // NoopSender implements the [Sender] interface but doesn't actually send any emails which is helpful for testing
 // purposes.
 type NoopSender struct{}
 
-func (ns NoopSender) Send(ctx context.Context, m Message) (string, string, error) {
-	return "", "", nil
+func (ns NoopSender) Send(ctx context.Context, m Message) (string, error) {
+	return "", nil
 }
 
 // determineEmailBody takes the [EventData.Body] or [EventData.Template] and executes them as

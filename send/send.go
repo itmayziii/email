@@ -76,7 +76,7 @@ func EmailEvent(app *App) func(context.Context, cloudevents.Event) error {
 
 		ctx, cancel := context.WithTimeout(ctx, time.Second*10)
 		defer cancel()
-		_, _, err = sender.Send(ctx, Message{
+		id, err := sender.Send(ctx, Message{
 			Sender:  eventData.Sender,
 			Subject: eventData.Subject,
 			Body:    emailBody,
@@ -87,7 +87,8 @@ func EmailEvent(app *App) func(context.Context, cloudevents.Event) error {
 			return err
 		}
 		app.infoLogger.Printf(
-			"email sent: sender: %s, subject: %s, to: %s\n",
+			"email sent: id: %s, sender: %s, subject: %s, to: %s\n",
+			id,
 			eventData.Sender,
 			eventData.Subject,
 			eventData.To,

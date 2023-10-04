@@ -10,10 +10,11 @@ type MailgunSenderAdapter struct {
 	mailgun mailgun.Mailgun
 }
 
-func (adapter MailgunSenderAdapter) Send(ctx context.Context, m Message) (string, string, error) {
+func (adapter MailgunSenderAdapter) Send(ctx context.Context, m Message) (string, error) {
 	message := adapter.mailgun.NewMessage(m.Sender, m.Subject, "", m.To...)
 	message.SetHtml(m.Body)
-	return adapter.mailgun.Send(ctx, message)
+	_, id, err := adapter.mailgun.Send(ctx, message)
+	return id, err
 }
 
 // NewMailgunSender constructs a MailgunSenderAdapter
