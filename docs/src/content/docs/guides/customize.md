@@ -3,7 +3,7 @@ title: Customizing Guide
 description: Learn how to customize the email package.
 ---
 
-## Custom Logger
+## Logger
 You can provide a custom `info` and `error` logger to this email package to use. By default, nothing will be logged
 if you do not provide one. That is to say if you only want errors to be logged then only provide an `error` logger.
 
@@ -24,8 +24,8 @@ func main() {
     errorLogger := log.New(os.Stdout, "error - ", log.Ltime)
     
     app := send.NewApp(
-    send.AppWithInfoLogger(infoLogger),
-    send.AppWithErrorLogger(errorLogger)
+        send.AppWithInfoLogger(infoLogger),
+        send.AppWithErrorLogger(errorLogger),
     )
     
     send.EmailEvent(app)
@@ -59,12 +59,10 @@ func main() {
 	errorLogger := zap.NewStdLogAt(logger, zap.ErrorLevel)
 
 	app := send.NewApp(
-		send.AppWithFlusher(ZapFlusher{
-			zap: logger,
-        }),
+		send.AppWithFlusher(ZapFlusher{zap: logger}),
 	    send.AppWithInfoLogger(infoLogger),
 		send.AppWithErrorLogger(errorLogger),
-)
+    )
 
 	send.EmailEvent(app)
 }
@@ -98,6 +96,42 @@ func main() {
 }
 ```
 
+## Templating
+This package relies on the [Go Cloud Development Kit blob package][blob] to abstract away handling file storage.
+You can choose to store your templates on [disk][blob-disk], [GCS][blob-gcs], [S3][blob-s3], or any other option
+supported by the blob package. Under the hood this package will use your configured blob to retrieve email templates
+when the [template option][app-attributes] is provided.
+
+_GCS example_
+```go
+package main
+
+import (
+	"context"
+	"github.com/itmayziii/email/send"
+	"gocloud.dev/blob"
+	_ "gocloud.dev/blob/gcsblob"
+	"os"
+)
+
+func main() {
+	bucketName := os.Getenv("BUCKET")
+	bucket, err := blob.OpenBucket(context.Background(), bucketName)
+	if err != nil {
+		os.Exit(1)
+	}
+
+	app := send.NewApp(send.AppWithFileStorage(bucket))
+
+	send.EmailEvent(app)
+}
+```
+
 [standard-logger]: https://pkg.go.dev/log
 [zap]: https://pkg.go.dev/go.uber.org/zap
 [gcp-logging]: https://cloud.google.com/logging/docs/setup/go
+[blob]: https://gocloud.dev/howto/blob/
+[blob-disk]: https://gocloud.dev/howto/blob/#local
+[blob-gcs]: https://gocloud.dev/howto/blob/#gcs
+[blob-s3]: https://gocloud.dev/howto/blob/#s3
+[app-attributes]: /guides/event-format/#application-specific-attributes
