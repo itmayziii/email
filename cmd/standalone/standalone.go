@@ -17,7 +17,6 @@ import (
 import (
 	_ "github.com/joho/godotenv/autoload"
 	_ "gocloud.dev/blob/fileblob"
-	_ "gocloud.dev/blob/gcsblob"
 )
 
 func main() {
@@ -26,7 +25,6 @@ func main() {
 		log.Fatalf("funcframework.RegisterCloudEventFunctionContext: %v\n", err)
 	}
 
-	// Use PORT environment variable, or default to 8080.
 	port := "8080"
 	if envPort := os.Getenv("PORT"); envPort != "" {
 		port = envPort

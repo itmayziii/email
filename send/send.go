@@ -27,14 +27,14 @@ func EmailEvent(app *App) func(context.Context, cloudevents.Event) error {
 			}
 		}()
 
-		_, msgData, err := extractEventData(event)
+		eventData, err := extractEventData(event)
 		if err != nil {
 			app.errorLogger.Printf("failed to extract event data - %v", err)
 			// Being unable to unmarshal the event data likely means this message will never succeed. We log the error
 			// and don't return it to prevent the event from replaying.
 			return nil
 		}
-		err = validateMessageData(msgData)
+		err = validateEventData(eventData)
 		if err != nil {
 			// Invalid data likely means this message will never succeed. We log the error and don't return it to
 			// prevent the event from replaying.
@@ -42,7 +42,7 @@ func EmailEvent(app *App) func(context.Context, cloudevents.Event) error {
 			return nil
 		}
 
-		emailBody, err := determineEmailBody(ctx, app, msgData)
+		emailBody, err := determineEmailBody(ctx, app, eventData)
 		if err != nil {
 			app.errorLogger.Printf("failed to determine email body %v", err)
 			if errors.As(err, &ReadTemplateError{}) {
@@ -57,7 +57,7 @@ func EmailEvent(app *App) func(context.Context, cloudevents.Event) error {
 			return nil
 		}
 
-		domain, err := extractEmailDomain(msgData.Sender)
+		domain, err := extractEmailDomain(eventData.Sender)
 		if err != nil {
 			app.errorLogger.Print(err)
 			// Invalid domains will never be able to be sent
@@ -68,7 +68,7 @@ func EmailEvent(app *App) func(context.Context, cloudevents.Event) error {
 			err = fmt.Errorf(
 				"domain: \"%s\" from \"sender\": \"%s\" does not match any registered domain to send emails from",
 				domain,
-				msgData.Sender,
+				eventData.Sender,
 			)
 			app.errorLogger.Print(err)
 			return err
@@ -76,21 +76,22 @@ func EmailEvent(app *App) func(context.Context, cloudevents.Event) error {
 
 		ctx, cancel := context.WithTimeout(ctx, time.Second*10)
 		defer cancel()
-		_, _, err = sender.Send(ctx, Message{
-			Sender:  msgData.Sender,
-			Subject: msgData.Subject,
+		id, err := sender.Send(ctx, Message{
+			Sender:  eventData.Sender,
+			Subject: eventData.Subject,
 			Body:    emailBody,
-			To:      msgData.To,
+			To:      eventData.To,
 		})
 		if err != nil {
 			app.errorLogger.Printf("failed to send email: %v\n", err)
 			return err
 		}
 		app.infoLogger.Printf(
-			"email sent: sender: %s, subject: %s, to: %s\n",
-			msgData.Sender,
-			msgData.Subject,
-			msgData.To,
+			"email sent: id: %s, sender: %s, subject: %s, to: %s\n",
+			id,
+			eventData.Sender,
+			eventData.Subject,
+			eventData.To,
 		)
 
 		return nil

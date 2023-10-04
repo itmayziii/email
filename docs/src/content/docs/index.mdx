@@ -16,7 +16,7 @@ hero:
 import { Card, CardGrid } from '@astrojs/starlight/components';
 
 ## Why?
-* Storing secrets necessary to send emails  in many projects is tedious, it is easier to centralize that secret access.
+* Storing secrets necessary to send emails in many projects is tedious, it is easier to centralize that secret access.
 * Sending emails in apps often involves setting up some sort of messaging queue and templating engine to handle
 variables in emails. Doing this for every app is again, tedious.
 * Centralizing email templates gives transparency of what exists already.
@@ -27,16 +27,16 @@ This package is designed to facilitate email sending in a vendor-neutral manner,
 We achieve this goal through the following features:
 
 * ### Sending Options:
-  * Providing users with the flexibility to choose their preferred method of sending emails, whether it's through a SaaS
-    solution like [Mailgun][mailgun] or [SendGrid][sendgrid], or by utilizing their own SMTP server.
+  Flexibility to choose your preferred method of sending emails, whether it's through a SaaS
+    solution like [Mailgun][mailgun] or [SendGrid][sendgrid], or by utilizing your own SMTP server.
 
 * ### Template Storage:
-  * Allowing users to decide where they want to store email templates, whether it's on their local disk or in cloud
-    storage services like [S3][s3] or [Google Cloud Storage (GCS).][gcs]
+  Decide where you want to store email templates, whether it's on local disk or in cloud storage services like [S3]
+  [s3] or [Google Cloud Storage (GCS).][gcs]
 
 * ### Standardization
-  * Adhering to the [CloudEvent specification][cloud-events] to ensure a consistent and opinionated structure for event
-    data.
+  Adhere to the [CloudEvent specification][cloud-events] to ensure a consistent and opinionated structure for event
+  data.
 
 ## Next steps
 

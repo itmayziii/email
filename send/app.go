@@ -109,7 +109,7 @@ func AppWithFileStorage(fileStorage *blob.Bucket) AppOption {
 }
 
 // AppWithDomainSender associates a domain with a [Sender]. Domains will be matched with event supplied
-// [EventMessageData.Sender] i.e. Sender = no-reply@tommymay.dev: domain = tommymay.dev. The matching sender will be
+// [EventData.Sender] i.e. Sender = no-reply@tommymay.dev: domain = tommymay.dev. The matching sender will be
 // used to send the email.
 func AppWithDomainSender(domain string, sender Sender) AppOption {
 	return func(app *App) {
