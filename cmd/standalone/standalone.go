@@ -17,7 +17,6 @@ import (
 import (
 	_ "github.com/joho/godotenv/autoload"
 	_ "gocloud.dev/blob/fileblob"
-	_ "gocloud.dev/blob/gcsblob"
 )
 
 func main() {
