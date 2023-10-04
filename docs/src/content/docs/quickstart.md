@@ -87,10 +87,10 @@ The easiest way to get started is to run this package as a standalone HTTP serve
         // Create a mailgun object, note that mg.example.com is the domain you register with Mailgun and not
         // the domain your sending from. i.e. Mailgun suggests setting Mailgun up at mg.SOME_DOMAIN.com so if you want
         // to send emails from SOME_DOMAIN.com then you should use mg.SOME_DOMAIN.com in the value here. 
-        mailgun := mailgun.NewMailgun("mg.example.com", os.Getenv("MG_API_KEY"))
+        mg := mailgun.NewMailgun("mg.example.com", os.Getenv("MG_API_KEY"))
 	    app := send.NewApp(
 		    send.AppWithInfoLogger(infoLogger),
-		    send.AppWithDomainSender("example.com", send.NewMailgunSender(mailgun)),
+		    send.AppWithDomainSender("example.com", send.NewMailgunSender(mg)),
 	    )
     ```
    

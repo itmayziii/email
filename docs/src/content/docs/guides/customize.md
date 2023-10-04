@@ -16,7 +16,8 @@ standard library too much we use `*log.Logger`.
 package main
 
 import (
-    "log"
+	"github.com/itmayziii/email/send"
+	"log"
 )
 
 func main() {
@@ -74,6 +75,7 @@ package main
 
 import (
 	"cloud.google.com/go/logging"
+	"github.com/itmayziii/email/send"
 	"os"
 )
 
@@ -87,7 +89,7 @@ func main() {
 	errorLogger := logger.StandardLogger(logging.Error)
 
 	app := send.NewApp(
-		sned.AppWithFlusher(logger),
+		send.AppWithFlusher(logger),
 		send.AppWithInfoLogger(infoLogger),
 		send.AppWithErrorLogger(errorLogger),
 	)
@@ -127,6 +129,50 @@ func main() {
 }
 ```
 
+## Email Providers
+This package exposes an interface called `Sender` which can be implemented to do the actual sending of an email. 
+
+```go
+type Sender interface {
+    Send(ctx context.Context, m Message) (string, error)
+}
+
+// Message represents an email.
+type Message struct {
+    Sender  string
+    Subject string
+    Body    string
+    To      []string
+}
+```
+
+This package aims to make it easy to work with common email SaaS offerings by supplying adapters that already implement
+this `Sender` interface. You have the flexibility to configure multiple email providers if you wish i.e. all emails
+from `example.com` could use Mailgun and all emails from `example.org` could use Sendgrid.
+
+### [Mailgun][mailgun] Adapter
+```go
+package main
+
+import (
+	"os"
+	"github.com/mailgun/mailgun-go/v4"
+	"github.com/itmayziii/email/send"
+)
+
+func main() {
+    mg := mailgun.NewMailgun("mg.example.com", os.Getenv("MG_API_KEY"))
+    mgSender := send.NewMailgunSender(mg)
+	app := send.NewApp(send.AppWithDomainSender("example.com", send.NewMailgunSender(mgSender)))
+
+	send.EmailEvent(app)
+}
+```
+
+The above example demonstrates how to use Mailgun to send emails. This package will match the ["from"][app-attributes]
+attribute with the domain i.e. from: no-reply@example.com will matches the "example.com" domain which was configured
+to use the provided mailgun object to send emails.
+
 [standard-logger]: https://pkg.go.dev/log
 [zap]: https://pkg.go.dev/go.uber.org/zap
 [gcp-logging]: https://cloud.google.com/logging/docs/setup/go
@@ -135,3 +181,4 @@ func main() {
 [blob-gcs]: https://gocloud.dev/howto/blob/#gcs
 [blob-s3]: https://gocloud.dev/howto/blob/#s3
 [app-attributes]: /guides/event-format/#application-specific-attributes
+[mailgun]: https://www.mailgun.com/
