@@ -14,12 +14,12 @@ func (ns NoopSender) Send(ctx context.Context, m Message) (string, string, error
 	return "", "", nil
 }
 
-// determineEmailBody takes the [EventMessageData.Body] or [EventMessageData.Template] and executes them as
-// Go HTML templates with variables being provided by [EventMessageData.Data]. The result should be HTML appropriate to
+// determineEmailBody takes the [EventData.Body] or [EventData.Template] and executes them as
+// Go HTML templates with variables being provided by [EventData.Data]. The result should be HTML appropriate to
 // use as an email body.
 //
 // [Go HTML templates]: https://pkg.go.dev/html/template
-func determineEmailBody(ctx context.Context, app *App, msgData EventMessageData) (string, error) {
+func determineEmailBody(ctx context.Context, app *App, msgData EventData) (string, error) {
 	unparsedBody := msgData.Body
 	if unparsedBody == "" {
 		templateBody, err := readTemplate(ctx, app, msgData.Template)
