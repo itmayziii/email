@@ -1,6 +1,6 @@
 ---
 title: Message Format
-description: Learn how to format the message content sent in CloudEvents.
+description: Learn how to format the message content to send an email.
 ---
 
 [CloudEvents][cloud-events] gives us a starting point for defining how events should be structured, but it is not
@@ -30,6 +30,52 @@ Content-Length: 681
     "type": "google.cloud.pubsub.topic.v1.messagePublished",
     "time": "2020-12-20T13:37:33.647Z",
     "data": {
+        "sender": "no-reply@example.com",
+        "subject": "hello world",
+        "body": "some body",
+        "to": ["tom@example.com"]
+    }
+}
+```
+
+All the top level attributes are defined by the CloudEvents specification including the `data` attribute. The only
+caveat is the content of the `data` attribute is left open for applications to define themselves.
+
+## Application Specific Attributes
+
+| Attribute | Type             | Description                                                      |
+|-----------|------------------|------------------------------------------------------------------|
+| sender    | string           | Who the email is coming from                                     |
+| subject   | string           | What the email is about                                          |
+| body      | string           | HTML body of the email, alternatively provide "template"         |
+| to        | []string         | Who the email should go to                                       |
+| template  | string           | Go HTML template path                                            |
+| data      | map[string][any] | Arbitrary variables you want to bind to the "body" or "template" |
+
+
+## Other Message Formats
+Some event producers have a defined way they produce payloads and while it would not be possible for this library
+to accommodate every format, we will aim to make it easy to work with the most popular ones.
+
+### GCP Evetnarc + Pub/Sub 
+When receiving events produced by GCP pub/sub the event payload will be wrapped in a `message` attribute and 
+`message.data` will be base64 encoded data which should contain our application specific attributes. The `data.message`
+attribute matches [PubsubMessage structure.][gcp-pub-sub-message] 
+
+The CloudEvent produced by [Eventarc / GCP Pub/Sub][eventarc] is going to look like this:
+```http
+POST / HTTP/1.1
+Host: 127.0.0.1:8080
+Content-Type: application/cloudevents+json; charset=utf-8
+Content-Length: 681
+
+{
+    "id": "1096434104173400",
+    "source": "//pubsub.googleapis.com/projects/example-project/topics/email",
+    "specversion": "1.0",
+    "type": "google.cloud.pubsub.topic.v1.messagePublished",
+    "time": "2020-12-20T13:37:33.647Z",
+    "data": {
         "message": {
             "attributes": {
                 "key": "value"
@@ -43,28 +89,18 @@ Content-Length: 681
 }
 ```
 
-All the top level attributes are defined by the CloudEvents specification including the `data` attribute. The only
-caveat is the content of the `data` attribute is left open for applications to define themselves. This package has made
-the decision to follow another existing specification which is [GCP pub/sub message format.][gcp-pub-sub-message]
+This package already unwraps the data from `message.data` for you and is compatible with this type of event format.
+We detect the CloudEvent type and look for `google.cloud.pubsub.topic.v1.messagePublished` to determine if this 
+unwrapping needs done.
 
-This means that the `data.message` attribute matches the [PubsubMessage structure][gcp-pub-sub-message] and the
-`data.message.data` attribute is a base64 encoded string containing the actual information needed to send an email
-such as the sender and recipients.
+## Examples
+Check out the public postman collection to see how to send CloudEvents over HTTP in both binary and structured data
+mode.
 
-## Application Specific Attributes
-These are the attributes that should be base64 encoded and put into `message.data`.
-
-| Attribute | Type             | Description                                                      |
-|-----------|------------------|------------------------------------------------------------------|
-| sender    | string           | Who the email is coming from                                     |
-| subject   | string           | What the email is about                                          |
-| body      | string           | HTML body of the email, alternatively provide "template"         |
-| to        | []string         | Who the email should go to                                       |
-| template  | string           | Go HTML template path                                            |
-| data      | map[string][any] | Arbitrary variables you want to bind to the "body" or "template" |
-
+[![Run in Postman](https://run.pstmn.io/button.svg)](https://app.getpostman.com/run-collection/135269-e02c0d1c-05d4-4cbe-b3e6-edc2d88a7dd1?action=collection%2Ffork&source=rip_markdown&collection-url=entityId%3D135269-e02c0d1c-05d4-4cbe-b3e6-edc2d88a7dd1%26entityType%3Dcollection%26workspaceId%3Dfd4b13b1-1b61-4a2a-9a77-f7e2158f0514)
 
 [cloud-events]: https://cloudevents.io/
 [cloud-event-goals]: https://github.com/cloudevents/spec/blob/main/cloudevents/primer.md#design-goals
 [cloud-event-http]: https://github.com/cloudevents/spec/blob/main/cloudevents/bindings/http-protocol-binding.md#32-structured-content-mode
 [gcp-pub-sub-message]: https://cloud.google.com/pubsub/docs/reference/rest/v1/PubsubMessage
+[eventarc]: https://cloud.google.com/eventarc/docs/overview

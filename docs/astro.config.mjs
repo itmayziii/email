@@ -25,7 +25,7 @@ export default defineConfig({
 					label: 'Guides',
 					items: [
 						{ label: 'Message Format', link: '/guides/message-format/' },
-						{ label: 'Customizing', link: '/guides/customizing/' },
+						{ label: 'Customize', link: '/guides/customize/' },
 						{ label: 'Deploy', link: '/guides/deploy/' },
 					],
 				},

@@ -4,7 +4,7 @@ description: Get up and running quickly with the email package.
 ---
 
 ## Functions Framework
-The easiest way to get started is to run this package as a standalone server which can be done easily with the
+The easiest way to get started is to run this package as a standalone HTTP server which can be done easily with the
 [Functions Framework for Go.][ff-go]
 
 1. Create a file to represent your server, lets say `function.go`.
@@ -64,32 +64,26 @@ The easiest way to get started is to run this package as a standalone server whi
 4. Send a sample [CloudEvent][cloud-events] to the server at `127.0.0.0:8080`
     ```shell
     curl --location 'localhost:8080' \
-      --header 'ce-id: 1096434104173400' \
-      --header 'ce-source: //pubsub.googleapis.com/projects/example-project/topics/email' \
-      --header 'ce-specversion: 1.0' \
-      --header 'ce-type: google.cloud.pubsub.topic.v1.messagePublished' \
-      --header 'ce-time: 2020-12-20T13:37:33.647Z' \
-      --header 'Content-Type: application/json' \
-      --data '{
-        "message": {
-            "attributes": {
-                "app": "blog"
-            },
-            "data": "eyJzZW5kZXIiOiJuby1yZXBseUBleGFtcGxlLmNvbSIsInN1YmplY3QiOiJoZWxsbyB3b3JsZCIsImJvZHkiOiJzb21lIGJvZHkiLCJ0byI6WyJzb21lYm9keUBleGFtcGxlLmNvbSJdfQo=",
-            "messageId": "2070443601311540",
-            "publishTime": "2021-02-26T19:13:55.749Z"
-        },
-        "subscription": "projects/example-project/subscriptions/mysubscription"
-      }' 
+    --header 'ce-id: 1096434104173400' \
+    --header 'ce-source: //pubsub.googleapis.com/projects/example-project/topics/email' \
+    --header 'ce-specversion: 1.0' \
+    --header 'ce-type: someType' \
+    --header 'ce-time: 2020-12-20T13:37:33.647Z' \
+    --header 'Content-Type: application/json' \
+    --data-raw '{
+      "sender": "no-reply@example.com",
+      "subject": "hello world",
+      "body": "some body",
+      "to": ["tom@example.com"]
+    }'
     ```
 
     You will see output from the server similar to
-    `info - 21:22:41 email sent: sender: no-reply@example.com, subject: hello world, to: [somebody@example.com]`.
+    `info - 21:22:41 email sent: sender: no-reply@example.com, subject: hello world, to: [tom@example.com]`.
     You will notice that none of the data in the output is present in the CloudEvent we sent to the server and this is
     because we are following the [GCP pub/sub message format][pubsub-message-format] which specifies the application
     data be base64 encoded. If you look at `message.data` you will see the base64 encoded string. You can read more
     about the expected message format in the [message format guide][message-format-guide]. 
-
 
 [ff-go]: https://github.com/GoogleCloudPlatform/functions-framework-go
 [cloud-events]: https://cloudevents.io/
