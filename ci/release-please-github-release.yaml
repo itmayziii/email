@@ -1,0 +1,23 @@
+steps:
+  - id: 'release-please'
+    name: 'us-central1-docker.pkg.dev/itmayziii/docker-us-central1/release-please:latest'
+    entrypoint: 'sh'
+    args: [
+      '-c',
+      'npx release-please github-release --token="$$GITHUB_TOKEN" --repo-url="$$REPO_FULL_NAME"'
+    ]
+    secretEnv:
+      - 'GITHUB_TOKEN'
+    env:
+      - 'REPO_FULL_NAME=$REPO_FULL_NAME'
+    waitFor: ['-'] # Run immediately
+
+availableSecrets:
+  secretManager:
+    - versionName: 'projects/itmayziii/secrets/release-please-ci-github-token/versions/latest'
+      env: 'GITHUB_TOKEN'
+
+options:
+  logging: 'CLOUD_LOGGING_ONLY'
+tags: ['package-email', 'release-please']
+timeout: '600s' # 10 minutes

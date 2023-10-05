@@ -6,6 +6,7 @@ about package development.
 
 [![Static Badge](https://img.shields.io/badge/Documentation-green)][docs]
 [![Commitizen friendly](https://img.shields.io/badge/commitizen-friendly-brightgreen.svg)](https://commitizen.github.io/cz-cli/)
+[![Go Reference](https://pkg.go.dev/badge/github.com/itmayziii/email.svg)](https://pkg.go.dev/github.com/itmayziii/email)
 
 ## Roadmap
 * Add support for some sort of database to keep track of emails already sent to ensure only once delivery. This

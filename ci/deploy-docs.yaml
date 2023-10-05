@@ -108,5 +108,5 @@ steps:
 
 options:
   logging: 'CLOUD_LOGGING_ONLY'
-tags: ['docs', 'email']
+tags: ['docs', 'package-email']
 timeout: '600s' # 10 minutes
