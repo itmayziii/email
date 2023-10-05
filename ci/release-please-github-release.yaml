@@ -12,6 +12,19 @@ steps:
       - 'REPO_FULL_NAME=$REPO_FULL_NAME'
     waitFor: ['-'] # Run immediately
 
+  # This is mentioned in the documentation on how to release a Go package. It tells Go to update its index of modules
+  # so the Go reference documentation is up-to-date.
+  - id: 'make-module-available'
+    name: 'golang:1.21-alpine'
+    entrypoint: 'sh'
+    args: [
+      '-c',
+      'GOPROXY=proxy.golang.org go list -m github.com/$$REPO_FULL_NAME@$(go run cmd/version/version.go)'
+    ]
+    env:
+      - 'REPO_FULL_NAME=$REPO_FULL_NAME'
+    waitFor: ['release-please']
+
 availableSecrets:
   secretManager:
     - versionName: 'projects/itmayziii/secrets/release-please-ci-github-token/versions/latest'
