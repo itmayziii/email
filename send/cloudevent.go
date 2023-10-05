@@ -44,8 +44,13 @@ type EventData struct {
 	//
 	// [Go HTML template]: https://pkg.go.dev/html/template
 	Body string `json:"body"`
-	// To represents who the email should go to and can be provided as an array of strings or just a string
+	// To represents who the email should go to and can be provided as an array of strings a string.
 	To MessageTo `json:"to"`
+	// Cc represents who will be carbon copied onto the email and can be provided as an array of string or a string.
+	Cc MessageTo `json:"cc"`
+	// Bcc represents who will be blind carbon copied onto the email and can be provided as an array of string or a
+	// string.
+	Bcc MessageTo `json:"bcc"`
 	// Template is a path to the email template to use as the email [EventData.Body]. It will be parsed as
 	// a [Go HTML template] and bound to the variables provided by Data. You should not pass both
 	// [EventData.Template] and [EventData.Body] at the same time as they are both meant to represent
@@ -107,28 +112,46 @@ func extractEventData(event cloudevents.Event) (EventData, error) {
 }
 
 // validateEventData ensures that [EventData] contains appropriate values such as having a valid sender, subject, etc...
-func validateEventData(msgData EventData) error {
-	if msgData.Sender == "" {
+func validateEventData(eventData EventData) error {
+	if eventData.Sender == "" {
 		return errors.New("missing \"sender\"")
 	}
-	if _, err := mail.ParseAddress(msgData.Sender); err != nil {
+	if _, err := mail.ParseAddress(eventData.Sender); err != nil {
 		return fmt.Errorf("invalid \"sender\" - %v", err)
 	}
 
-	if msgData.Subject == "" {
+	if eventData.Subject == "" {
 		return errors.New("missing \"subject\"")
 	}
 
-	if msgData.Body == "" && msgData.Template == "" {
+	if eventData.Body == "" && eventData.Template == "" {
 		return errors.New("either \"body\" or \"template\" should be defined")
 	}
 
-	if len(msgData.To) == 0 {
+	if len(eventData.To) == 0 {
 		return errors.New("missing \"to\"")
 	}
-	for _, to := range msgData.To {
-		if _, err := mail.ParseAddress(to); err != nil {
-			return fmt.Errorf("invalid \"to\" - %v", err)
+	if err := validateEmails(eventData.To); err != nil {
+		return fmt.Errorf("invalid \"to\" - %v", err)
+	}
+
+	if err := validateEmails(eventData.Cc); err != nil {
+		return fmt.Errorf("invalid \"cc\" - %v", err)
+	}
+
+	if err := validateEmails(eventData.Bcc); err != nil {
+		return fmt.Errorf("invalid \"bcc\" - %v", err)
+	}
+
+	return nil
+}
+
+// validateEmails loops over a slice of strings and checks if they are valid emails. This function fails fast so the
+// first invalid email will return an error and the rest of the emails will go unvalidated.
+func validateEmails(emails []string) error {
+	for _, e := range emails {
+		if _, err := mail.ParseAddress(e); err != nil {
+			return err
 		}
 	}
 

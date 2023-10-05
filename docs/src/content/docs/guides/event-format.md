@@ -43,14 +43,16 @@ caveat is the content of the `data` attribute is left open for applications to d
 
 ## Application Specific Attributes
 
-| Attribute | Type             | Description                                                      |
-|-----------|------------------|------------------------------------------------------------------|
-| sender    | string           | Who the email is coming from                                     |
-| subject   | string           | What the email is about                                          |
-| body      | string           | HTML body of the email, alternatively provide "template"         |
-| to        | []string         | Who the email should go to                                       |
-| template  | string           | Go HTML template path                                            |
-| data      | map[string][any] | Arbitrary variables you want to bind to the "body" or "template" |
+| Attribute | Type                          | Description                                                      |
+|-----------|-------------------------------|------------------------------------------------------------------|
+| sender    | string                        | Who the email is coming from                                     |
+| subject   | string                        | What the email is about                                          |
+| body      | string (optional w/ template) | HTML body of the email, alternatively provide "template"         |
+| to        | []string                      | Who the email should go to                                       |
+| template  | string (optional w/ body)     | Go HTML template path                                            |
+| data      | map[string][any]              | Arbitrary variables you want to bind to the "body" or "template" |
+| cc        | []string (optional)           | Who will be carbon copied on the email                           |
+| bcc       | []string (optional)           | Who will be blind carbon copied on the email                     |
 
 
 ## Other Message Formats

@@ -81,17 +81,21 @@ func EmailEvent(app *App) func(context.Context, cloudevents.Event) error {
 			Subject: eventData.Subject,
 			Body:    emailBody,
 			To:      eventData.To,
+			Cc:      eventData.Cc,
+			Bcc:     eventData.Bcc,
 		})
 		if err != nil {
 			app.errorLogger.Printf("failed to send email: %v\n", err)
 			return err
 		}
 		app.infoLogger.Printf(
-			"email sent: id: %s, sender: %s, subject: %s, to: %s\n",
+			"email sent: id: %s, sender: %s, subject: %s, to: %s, cc: %s, bcc: %s\n",
 			id,
 			eventData.Sender,
 			eventData.Subject,
 			eventData.To,
+			eventData.Cc,
+			eventData.Bcc,
 		)
 
 		return nil
