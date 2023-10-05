@@ -18,6 +18,8 @@ type Message struct {
 	Subject string
 	Body    string
 	To      []string
+	Cc      []string
+	Bcc     []string
 }
 
 // NoopSender implements the [Sender] interface but doesn't actually send any emails which is helpful for testing
