@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.0](https://github.com/itmayziii/email/compare/v1.0.0...v1.1.0) (2023-10-05)
+
+
+### Features
+
+* **cc and bcc:** added the ability to (blind) carbon copy by proving "cc" and "bcc" ([0d4e18a](https://github.com/itmayziii/email/commit/0d4e18a6d09cf71da5109aed22471275b9491d7a))
+
 ## 1.0.0 (2023-10-05)
 
 
