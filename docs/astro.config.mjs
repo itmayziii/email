@@ -2,7 +2,7 @@ import { defineConfig } from 'astro/config';
 import starlight from '@astrojs/starlight';
 import { loadEnv } from 'vite'
 
-const env = loadEnv(import.meta.env.MODE, process.cwd(), '')
+const env = loadEnv(process.env.NODE_ENV, process.cwd(), '')
 
 // https://astro.build/config
 export default defineConfig({
