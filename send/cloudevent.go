@@ -1,7 +1,6 @@
 package send
 
 import (
-	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -70,10 +69,14 @@ type MessageTo []string
 
 func (to *MessageTo) UnmarshalJSON(data []byte) error {
 	rawTo := string(data)
+	if rawTo == "" {
+		*to = []string{}
+		return nil
+	}
+
 	if strings.HasPrefix(rawTo, "[") {
 		var emails []string
-		dec := json.NewDecoder(bytes.NewReader(data))
-		err := dec.Decode(&emails)
+		err := json.Unmarshal(data, &emails)
 		if err != nil {
 			return err
 		}
@@ -81,7 +84,12 @@ func (to *MessageTo) UnmarshalJSON(data []byte) error {
 		return nil
 	}
 
-	*to = []string{rawTo}
+	var email string
+	err := json.Unmarshal(data, &email)
+	if err != nil {
+		return err
+	}
+	*to = []string{email}
 
 	return nil
 }
