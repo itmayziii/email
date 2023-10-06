@@ -69,10 +69,10 @@ type EventData struct {
 type MessageTo []string
 
 func (to *MessageTo) UnmarshalJSON(data []byte) error {
+	dec := json.NewDecoder(bytes.NewReader(data))
 	rawTo := string(data)
 	if strings.HasPrefix(rawTo, "[") {
 		var emails []string
-		dec := json.NewDecoder(bytes.NewReader(data))
 		err := dec.Decode(&emails)
 		if err != nil {
 			return err
@@ -81,7 +81,12 @@ func (to *MessageTo) UnmarshalJSON(data []byte) error {
 		return nil
 	}
 
-	*to = []string{rawTo}
+	var email string
+	err := dec.Decode(&email)
+	if err != nil {
+		return err
+	}
+	*to = []string{email}
 
 	return nil
 }
