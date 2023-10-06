@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.1](https://github.com/itmayziii/email/compare/v1.1.0...v1.1.1) (2023-10-06)
+
+
+### Bug Fixes
+
+* **no angle-addr error:** fixed issue where to, cc, and bcc were not … ([#10](https://github.com/itmayziii/email/issues/10)) ([6ba5251](https://github.com/itmayziii/email/commit/6ba525139557e6bd0cbcdef8159c0c8e3e03cae6))
+
 ## [1.1.0](https://github.com/itmayziii/email/compare/v1.0.0...v1.1.0) (2023-10-05)
 
 
