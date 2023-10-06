@@ -11,9 +11,9 @@ func TestMessageTo_UnmarshalJSON_UnmarshalsStrings(t *testing.T) {
 		data     []byte
 		expected send.MessageTo
 	}{
-		{"empty string", []byte(""), send.MessageTo{""}},
-		{"non empty string", []byte("non empty string"), send.MessageTo{"non empty string"}},
-		{"JSON object", []byte("{\"hello\":\"world\"}"), send.MessageTo{"{\"hello\":\"world\"}"}},
+		{"empty string", []byte(""), send.MessageTo{}},
+		{"empty value", []byte{}, send.MessageTo{}},
+		{"non empty string", []byte(`"non empty string"`), send.MessageTo{"non empty string"}},
 	}
 
 	for _, tt := range tests {
@@ -24,10 +24,10 @@ func TestMessageTo_UnmarshalJSON_UnmarshalsStrings(t *testing.T) {
 			err := actual.UnmarshalJSON(ttCopy.data)
 
 			if err != nil {
-				t.Error(err)
+				t.Errorf("case: \"%s\", unexpected error: %v", ttCopy.name, err)
 			}
 			if len(ttCopy.expected) != len(actual) {
-				t.Errorf("expected %v to match %v", actual, ttCopy.expected)
+				t.Errorf("expected %s to match %s", actual, ttCopy.expected)
 			}
 			for i, a := range actual {
 				expected := ttCopy.expected[i]
@@ -46,7 +46,7 @@ func TestMessageTo_UnmarshalJSON_UnmarshalsStringArrays(t *testing.T) {
 		expected send.MessageTo
 	}{
 		{"empty array", []byte("[]"), send.MessageTo{}},
-		{"non empty array", []byte("[\"hello\", \"world\"]"), send.MessageTo{"hello", "world"}},
+		{"non empty array", []byte(`["hello", "world"]`), send.MessageTo{"hello", "world"}},
 	}
 
 	for _, tt := range tests {
@@ -72,14 +72,26 @@ func TestMessageTo_UnmarshalJSON_UnmarshalsStringArrays(t *testing.T) {
 	}
 }
 
-func TestMessageTo_UnmarshalJSON_ErrorsIfInvalidJson(t *testing.T) {
-	t.Parallel()
-	actual := send.MessageTo{}
-	err := actual.UnmarshalJSON([]byte(",a,jii3{"))
-
-	if err == nil {
-		return
+func TestMessageTo_UnmarshalJSON_ErrorsIfJsonIsNotStringOrStringArray(t *testing.T) {
+	tests := []struct {
+		name string
+		data []byte
+	}{
+		{"syntax error", []byte("{,a,jii3{")},
+		{"JSON object does not fit into string or []string", []byte(`{"hello":"world"}`)},
 	}
 
-	t.Errorf("error was expected but instead actual value is %v", actual)
+	for _, tt := range tests {
+		ttCopy := tt
+		t.Run(ttCopy.name, func(t *testing.T) {
+			t.Parallel()
+			actual := send.MessageTo{}
+			err := actual.UnmarshalJSON(ttCopy.data)
+
+			if err != nil {
+				return
+			}
+			t.Errorf("case: \"%s\", error was expected but actual value is %s", ttCopy.name, actual)
+		})
+	}
 }

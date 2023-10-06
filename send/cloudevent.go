@@ -1,7 +1,6 @@
 package send
 
 import (
-	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -69,11 +68,15 @@ type EventData struct {
 type MessageTo []string
 
 func (to *MessageTo) UnmarshalJSON(data []byte) error {
-	dec := json.NewDecoder(bytes.NewReader(data))
 	rawTo := string(data)
+	if rawTo == "" {
+		*to = []string{}
+		return nil
+	}
+
 	if strings.HasPrefix(rawTo, "[") {
 		var emails []string
-		err := dec.Decode(&emails)
+		err := json.Unmarshal(data, &emails)
 		if err != nil {
 			return err
 		}
@@ -82,7 +85,7 @@ func (to *MessageTo) UnmarshalJSON(data []byte) error {
 	}
 
 	var email string
-	err := dec.Decode(&email)
+	err := json.Unmarshal(data, &email)
 	if err != nil {
 		return err
 	}
