@@ -7,7 +7,6 @@ package send
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	cloudevents "github.com/cloudevents/sdk-go/v2"
 	"log"
@@ -30,38 +29,24 @@ func EmailEvent(app *App) func(context.Context, cloudevents.Event) error {
 		eventData, err := extractEventData(event)
 		if err != nil {
 			app.errorLogger.Printf("failed to extract event data - %v", err)
-			// Being unable to unmarshal the event data likely means this message will never succeed. We log the error
-			// and don't return it to prevent the event from replaying.
-			return nil
+			return err
 		}
 		err = validateEventData(eventData)
 		if err != nil {
-			// Invalid data likely means this message will never succeed. We log the error and don't return it to
-			// prevent the event from replaying.
 			app.errorLogger.Printf("invalid event data - %v", err)
-			return nil
+			return err
 		}
 
 		emailBody, err := determineEmailBody(ctx, app, eventData)
 		if err != nil {
 			app.errorLogger.Printf("failed to determine email body %v", err)
-			if errors.As(err, &ReadTemplateError{}) {
-				// In this specific case we should return the error to trigger the event to replay.
-				// Being unable to read the template could be a network issue or the developer simply has not
-				// put the template in place yet.
-				return err
-			}
-
-			// If the error is not a ReadTemplateError then it is probably related the email data not working
-			// with the body variables. We do not return the error to prevent the event from replaying.
-			return nil
+			return err
 		}
 
 		domain, err := extractEmailDomain(eventData.Sender)
 		if err != nil {
 			app.errorLogger.Print(err)
-			// Invalid domains will never be able to be sent
-			return nil
+			return err
 		}
 		sender, hasDomain := app.domainSenders[domain]
 		if !hasDomain {
