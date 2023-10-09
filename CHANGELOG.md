@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.2](https://github.com/itmayziii/email/compare/v1.1.1...v1.1.2) (2023-10-09)
+
+
+### Bug Fixes
+
+* **send/send.go:** returning error at every error step instead of nil ([#12](https://github.com/itmayziii/email/issues/12)) ([e9b4825](https://github.com/itmayziii/email/commit/e9b48255a701396faf2f9045c571cd75c0f9db8e))
+
 ## [1.1.1](https://github.com/itmayziii/email/compare/v1.1.0...v1.1.1) (2023-10-06)
 
 
