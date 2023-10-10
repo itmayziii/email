@@ -43,14 +43,15 @@ steps:
     dir: 'docs/dist'
     waitFor: ['build']
 
-  - id: 'set-html-metadata'
+    # Set metadata prior to rsync to live bucket
+  - id: 'set-html-metadata-staging'
     name: 'gcr.io/cloud-builders/gsutil'
     entrypoint: 'gsutil'
     args: [
       '-m',
       'setmeta',
       '-h',
-      'Content-Type:text/html',
+      'Content-Type: text/html',
       '-h',
       'Cache-Control: public, max-age=3600', # 1 Hour
       'gs://itmayziii-email-package-docs-staging/**.html'
@@ -58,14 +59,15 @@ steps:
     dir: 'docs/dist'
     waitFor: ['copy-to-staging-bucket']
 
-  - id: 'set-js-metadata'
+  # Set metadata prior to rsync to live bucket
+  - id: 'set-js-metadata-staging'
     name: 'gcr.io/cloud-builders/gsutil'
     entrypoint: 'gsutil'
     args: [
       '-m',
       'setmeta',
       '-h', # Header
-      'Content-Type:text/javascript',
+      'Content-Type: text/javascript',
       '-h', # Header
       'Cache-Control: public, max-age=31536000, immutable', # 1 Year
       'gs://itmayziii-email-package-docs-staging/**.js'
@@ -73,14 +75,15 @@ steps:
     dir: 'docs/dist'
     waitFor: ['copy-to-staging-bucket']
 
-  - id: 'set-css-metadata'
+  # Set metadata prior to rsync to live bucket
+  - id: 'set-css-metadata-staging'
     name: 'gcr.io/cloud-builders/gsutil'
     entrypoint: 'gsutil'
     args: [
       '-m',
       'setmeta',
       '-h', # Header
-      'Content-Type:text/css',
+      'Content-Type: text/css',
       '-h', # Header
       'Cache-Control: public, max-age=31536000, immutable', # 1 Year
       'gs://itmayziii-email-package-docs-staging/**.css'
@@ -104,7 +107,55 @@ steps:
       'gs://itmayziii-email-package-docs'
     ]
     dir: 'docs/dist'
-    waitFor: ['set-html-metadata', 'set-js-metadata', 'set-css-metadata']
+    waitFor: ['set-html-metadata-staging', 'set-js-metadata-staging', 'set-css-metadata-staging']
+
+    # Set metadata after rsync to live bucket just in case
+  - id: 'set-html-metadata-live'
+    name: 'gcr.io/cloud-builders/gsutil'
+    entrypoint: 'gsutil'
+    args: [
+      '-m',
+      'setmeta',
+      '-h',
+      'Content-Type: text/html',
+      '-h',
+      'Cache-Control: public, max-age=3600', # 1 Hour
+      'gs://itmayziii-email-package-docs/**.html'
+    ]
+    dir: 'docs/dist'
+    waitFor: ['copy-staging-to-live-bucket']
+
+  # Set metadata after rsync to live bucket just in case
+  - id: 'set-js-metadata-live'
+    name: 'gcr.io/cloud-builders/gsutil'
+    entrypoint: 'gsutil'
+    args: [
+      '-m',
+      'setmeta',
+      '-h', # Header
+      'Content-Type: text/javascript',
+      '-h', # Header
+      'Cache-Control: public, max-age=31536000, immutable', # 1 Year
+      'gs://itmayziii-email-package-docs/**.js'
+    ]
+    dir: 'docs/dist'
+    waitFor: ['copy-staging-to-live-bucket']
+
+  # Set metadata after rsync to live bucket
+  - id: 'set-css-metadata-live'
+    name: 'gcr.io/cloud-builders/gsutil'
+    entrypoint: 'gsutil'
+    args: [
+      '-m',
+      'setmeta',
+      '-h', # Header
+      'Content-Type: text/css',
+      '-h', # Header
+      'Cache-Control: public, max-age=31536000, immutable', # 1 Year
+      'gs://itmayziii-email-package-docs/**.css'
+    ]
+    dir: 'docs/dist'
+    waitFor: ['copy-to-staging-bucket']
 
 options:
   logging: 'CLOUD_LOGGING_ONLY'
