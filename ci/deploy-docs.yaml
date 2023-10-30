@@ -103,7 +103,7 @@ steps:
       '-c',
       '-j', # Enables in-memory gzip before upload
       'html,css,js',
-      'gs://itmayziii-email-package-docs/staging/*',
+      'gs://itmayziii-email-package-docs/staging',
       'gs://itmayziii-email-package-docs/live'
     ]
     dir: 'docs/dist'
