@@ -22,28 +22,28 @@ steps:
       - 'NO_COLOR=true'
     waitFor: ['install-dependencies']
 
-    # First we put contents in the staging bucket and then set the metadata. This is because when we copy the files
-    # to the live production bucket the metadata will be copied with it and there will be no moment where we are
+    # First we put contents in the "staging" folder and then set the metadata. When we copy the files from the "staging"
+    # folder to the "live" folder the metadata will be copied with it and there will be no moment where we are
     # missing metadata.
-  - id: 'copy-to-staging-bucket'
+  - id: 'copy-to-staging-folder'
     name: 'gcr.io/cloud-builders/gsutil'
     entrypoint: 'gsutil'
     args: [
       '-m',
       'rsync',
       '-r', # Recursively
-      '-d', # Delete old bucket contents
+      '-d', # Delete old folder contents
       # Computes checksums instead of comparing mtime. Project is always rebuild, mtime will be different every time.
       '-c',
       '-j', # Enables in-memory gzip before upload
       'html,css,js',
       './',
-      'gs://itmayziii-email-package-docs-staging'
+      'gs://itmayziii-email-package-docs/staging'
     ]
     dir: 'docs/dist'
     waitFor: ['build']
 
-    # Set metadata prior to rsync to live bucket
+    # Set metadata prior to rsync to "live" folder
   - id: 'set-html-metadata-staging'
     name: 'gcr.io/cloud-builders/gsutil'
     entrypoint: 'gsutil'
@@ -54,12 +54,12 @@ steps:
       'Content-Type: text/html',
       '-h',
       'Cache-Control: public, max-age=3600', # 1 Hour
-      'gs://itmayziii-email-package-docs-staging/**.html'
+      'gs://itmayziii-email-package-docs/staging/**.html'
     ]
     dir: 'docs/dist'
-    waitFor: ['copy-to-staging-bucket']
+    waitFor: ['copy-to-staging-folder']
 
-  # Set metadata prior to rsync to live bucket
+  # Set metadata prior to rsync to "live" folder
   - id: 'set-js-metadata-staging'
     name: 'gcr.io/cloud-builders/gsutil'
     entrypoint: 'gsutil'
@@ -70,12 +70,12 @@ steps:
       'Content-Type: text/javascript',
       '-h', # Header
       'Cache-Control: public, max-age=31536000, immutable', # 1 Year
-      'gs://itmayziii-email-package-docs-staging/**.js'
+      'gs://itmayziii-email-package-docs/staging/**.js'
     ]
     dir: 'docs/dist'
-    waitFor: ['copy-to-staging-bucket']
+    waitFor: ['copy-to-staging-folder']
 
-  # Set metadata prior to rsync to live bucket
+  # Set metadata prior to rsync to "live" folder
   - id: 'set-css-metadata-staging'
     name: 'gcr.io/cloud-builders/gsutil'
     entrypoint: 'gsutil'
@@ -86,30 +86,30 @@ steps:
       'Content-Type: text/css',
       '-h', # Header
       'Cache-Control: public, max-age=31536000, immutable', # 1 Year
-      'gs://itmayziii-email-package-docs-staging/**.css'
+      'gs://itmayziii-email-package-docs/staging/**.css'
     ]
     dir: 'docs/dist'
-    waitFor: ['copy-to-staging-bucket']
+    waitFor: ['copy-to-staging-folder']
 
-  - id: 'copy-staging-to-live-bucket'
+  - id: 'copy-staging-to-live-folder'
     name: 'gcr.io/cloud-builders/gsutil'
     entrypoint: 'gsutil'
     args: [
       '-m',
       'rsync',
       '-r', # Recursively
-      '-d', # Delete old bucket contents
+      '-d', # Delete old folder contents
       # Computes checksums instead of comparing mtime. Project is always rebuild, mtime will be different every time.
       '-c',
       '-j', # Enables in-memory gzip before upload
       'html,css,js',
-      'gs://itmayziii-email-package-docs-staging',
-      'gs://itmayziii-email-package-docs'
+      'gs://itmayziii-email-package-docs/staging/*',
+      'gs://itmayziii-email-package-docs/live'
     ]
     dir: 'docs/dist'
     waitFor: ['set-html-metadata-staging', 'set-js-metadata-staging', 'set-css-metadata-staging']
 
-    # Set metadata after rsync to live bucket just in case
+    # Set metadata after rsync to "live" folder just in case
   - id: 'set-html-metadata-live'
     name: 'gcr.io/cloud-builders/gsutil'
     entrypoint: 'gsutil'
@@ -120,12 +120,12 @@ steps:
       'Content-Type: text/html',
       '-h',
       'Cache-Control: public, max-age=3600', # 1 Hour
-      'gs://itmayziii-email-package-docs/**.html'
+      'gs://itmayziii-email-package-docs/live/**.html'
     ]
     dir: 'docs/dist'
-    waitFor: ['copy-staging-to-live-bucket']
+    waitFor: ['copy-staging-to-live-folder']
 
-  # Set metadata after rsync to live bucket just in case
+  # Set metadata after rsync to "live" folder just in case
   - id: 'set-js-metadata-live'
     name: 'gcr.io/cloud-builders/gsutil'
     entrypoint: 'gsutil'
@@ -136,12 +136,12 @@ steps:
       'Content-Type: text/javascript',
       '-h', # Header
       'Cache-Control: public, max-age=31536000, immutable', # 1 Year
-      'gs://itmayziii-email-package-docs/**.js'
+      'gs://itmayziii-email-package-docs/live/**.js'
     ]
     dir: 'docs/dist'
-    waitFor: ['copy-staging-to-live-bucket']
+    waitFor: ['copy-staging-to-live-folder']
 
-  # Set metadata after rsync to live bucket
+  # Set metadata after rsync to "live" folder
   - id: 'set-css-metadata-live'
     name: 'gcr.io/cloud-builders/gsutil'
     entrypoint: 'gsutil'
@@ -152,10 +152,10 @@ steps:
       'Content-Type: text/css',
       '-h', # Header
       'Cache-Control: public, max-age=31536000, immutable', # 1 Year
-      'gs://itmayziii-email-package-docs/**.css'
+      'gs://itmayziii-email-package-docs/live/**.css'
     ]
     dir: 'docs/dist'
-    waitFor: ['copy-to-staging-bucket']
+    waitFor: ['copy-to-staging-folder']
 
 options:
   logging: 'CLOUD_LOGGING_ONLY'
