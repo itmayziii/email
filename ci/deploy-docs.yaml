@@ -155,7 +155,7 @@ steps:
       'gs://itmayziii-email-package-docs/live/**.css'
     ]
     dir: 'docs/dist'
-    waitFor: ['copy-to-staging-folder']
+    waitFor: ['copy-staging-to-live-folder']
 
 options:
   logging: 'CLOUD_LOGGING_ONLY'
