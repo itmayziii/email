@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.3](https://github.com/itmayziii/email/compare/v1.1.2...v1.1.3) (2023-10-30)
+
+
+### Bug Fixes
+
+* **ci/deploy-docs:** fixed "waitFor" inside set-css-metadata-live ([0f80dd1](https://github.com/itmayziii/email/commit/0f80dd182e337321f3df9c590c2f82516e7314a1))
+
 ## [1.1.2](https://github.com/itmayziii/email/compare/v1.1.1...v1.1.2) (2023-10-09)
 
 
